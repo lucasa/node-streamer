@@ -1,0 +1,69 @@
+
+<html>
+<style type="text/css">
+.canvas {
+    position: relative;
+    border: 2px dashed #000;
+}
+</style>
+
+<video id="video1" src="http://localhost:9001/stream" controls autobuffer autoplay></video>
+<br>
+<!--video id="video2" src="http://localhost:9001/" controls autobuffer autoplay></video-->
+<br>
+<canvas id="canvas1" width="400" height="100"></canvas>
+<canvas id="canvas2" width="400" height="100"></canvas>
+
+<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+<!--script type="text/javascript" src="http://smoothiecharts.org/smoothie.js"></script-->
+<script type="text/javascript" src="/smoothie.js"></script>
+<script>
+    var line1 = new TimeSeries();
+    var line2 = new TimeSeries();
+    var smoothie = new SmoothieChart();
+    var smoothie2 = new SmoothieChart();
+    (function() {
+/*        setInterval(function() {
+          line1.append(new Date().getTime(), Math.random());
+          line2.append(new Date().getTime(), Math.random());
+        }, 1000);*/
+        smoothie.addTimeSeries(line1);
+        smoothie.streamTo(document.getElementById("canvas1"), 1000);
+        
+        //smoothie2.addTimeSeries(line2);
+        smoothie2.addTimeSeries(line2, { strokeStyle:'rgb(0, 255, 0)', fillStyle:'rgba(0, 255, 0, 0.4)', lineWidth:3 });
+        smoothie2.streamTo(document.getElementById("canvas2"), 1000);
+    })();
+      
+    var socket = new io.Socket('localhost', { port:9001 });
+    socket.connect();
+    socket.on('connect', function(){
+        console.log("connected")
+    });
+    socket.on('disconnect', function(){ console.log('disconnected'); });
+    
+    var now = new Date().getTime();
+    var lastTotal = 0;
+    line1.append(now, 0.01);
+    socket.on('message', function(data)
+    {
+        now = new Date().getTime();
+        //console.log(data);
+        var c = data["clients"];
+        line1.append(now, c);
+        var total = data["total"];
+//        console.log("received data: " + c + ", "+ total);
+        if(lastTotal != total) {
+            var d = Math.round(total - lastTotal);
+//            console.log(d);
+            if(lastTotal > 0)
+                line2.append(now, d);
+                
+            lastTotal = total;
+        }
+    });
+    
+</script> 
+
+
+</html>
