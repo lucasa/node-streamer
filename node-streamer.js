@@ -17,7 +17,6 @@ var net = require("net");
 var express = require("express");
 var http = require("http");
 var child = require('child_process');
-var fs = require('fs');
 
 var cmd = '/usr/bin/gst-launch-0.10';
 var options = null;
@@ -53,7 +52,6 @@ app.get('/stream', function(req, res) {
     console.log("new http client");
     console.log("server writing header");
 
-    var i = 0;
     console.log("trying to connect a socket to gstreamer tcp server.");
     var port = 12345;
     if(clients % 2 == 0) // simple load balancing at gstreamer level
