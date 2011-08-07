@@ -2,8 +2,8 @@ Node-streamer is a experiment with live video streaming using gstreamer command 
 
 node node-streamer.js
 
-Open http://localhost:9000/
-The video url is: http://localhost:9000/stream
+Open http://localhost:9001/
+The video url is: http://localhost:9001/stream
 
 TODO
 
