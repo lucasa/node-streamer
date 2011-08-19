@@ -60,6 +60,9 @@ app.get('/stream', function(req, res) {
     
     io.on('connection', function (s) {
             console.log('socket.io client connected');
+    	setInterval(function() {
+      	  s.volatile.emit({ "clients" : clients , "total" : total_data });
+    	}, 1000);
     });
     socket.on('connect', function() {
         clients++;
@@ -91,9 +94,6 @@ app.get('/stream', function(req, res) {
         clients--;
     });    
     
-    setInterval(function() {
-        io.broadcast({ "clients" : clients , "total" : total_data });
-    }, 1000);
 });
 app.configure(function () {
     app.use(express.logger());
