@@ -36,8 +36,11 @@ http.ServerResponse.prototype.getHashCode = (function() {
     }
 })();
 
+var URL = "http://radiolivre.org:8000/muda.ogg";
 try {
-    spawGstreamer(GSTREAMER_PORT, "http://radiolivre.org:8000/muda.ogg");// "http://gonod.softwarelivre.org:8000/radiosl.ogg");
+    console.log("Starting the gstreamer pipeline...");
+    spawGstreamer(GSTREAMER_PORT, URL);// "http://gonod.softwarelivre.org:8000/radiosl.ogg");
+    console.log("Gstreamer pipeline started.");
 } catch(err) {
     console.log("Error starting the gstreamer pipeline.");
 }
@@ -156,7 +159,7 @@ console.log("HTTP server running");
 
 function spawGstreamer(port, url) {
         args =
-        ['--gst-debug-level=2',
+        ['--gst-debug-level=1',
         'uridecodebin', 'use-buffering=true', "uri="+url,
     	  '!', 'audiorate',
         '!', 'audioconvert',
@@ -173,18 +176,26 @@ function spawGstreamer(port, url) {
         gstMuxer.stderr.on('data', onSpawnError);
         gstMuxer.on('exit', onSpawnExit);
         console.log(args.toString());
+        return gstMuxer;
 }
 
+var DELAY = 1000; //1s
 function onSpawnError(data) {
-  console.log(data.toString());
+    console.error('GStreamer error: ' + data);
+    /*
+    gstMuxer.kill();
+    setTimeout(function() {
+    		console.log("Trying up gstreamer after "+(DELAY/1000)+" seconds.");
+      	    spawGstreamer(GSTREAMER_PORT, URL);
+    }, DELAY*=2); // wait a little more before try again
+    */
+}
+function onSpawnExit(code) {
+    console.error('GStreamer error, exit code ' + code);
+    console.log("Waiting "+(DELAY/1000)+" seconds before run againg.");
+    setTimeout(function() {
+    		console.log("Try up gstreamer after "+(DELAY/1000)+" seconds.");
+      	    spawGstreamer(GSTREAMER_PORT, URL);
+    }, DELAY*=2);
 }
 
-function onSpawnExit(code) {
-  if (code == 0) {
-    console.error('GStreamer error, exit code ' + code);
-/*    setTimeout(function() {
-    		console.log("Caiu, tentando depois de 5 segundos.");
-      	spawGstreamer(12345);
-    	}, 5 * 1000);*/
-  }
-}

@@ -32,8 +32,7 @@ http.ServerResponse.prototype.getHashCode = (function() {
     }
 })();
 
-spawGstreamer(12345);
-spawGstreamer(23456);
+spawGstreamer(11111);
 
 var total_data = 0;
 var clients = 0;
@@ -53,9 +52,7 @@ app.get('/stream', function(req, res) {
     console.log("server writing header");
 
     console.log("trying to connect a socket to gstreamer tcp server.");
-    var port = 12345;
-    if(clients % 2 == 0) // simple load balancing at gstreamer level
-        port = 23456;
+    var port = 11111;
     var socket = new net.createConnection(port);
     
     io.on('connection', function (s) {
@@ -103,13 +100,13 @@ app.configure(function () {
     }));
     app.use(express.static(__dirname+'/static'));
 });
-app.listen(9001);
+app.listen(8003);
 
 console.log("HTTP server running");
 
 function spawGstreamer(port) {
         args =
-        ['--gst-debug-level=2',
+        ['--gst-debug-level=3',
     //    'ximagesrc',
         'videotestsrc', 'is-live=1', //'horizontal-speed=2',
     //    'uridecodebin', "uri=htpp://",    
@@ -125,7 +122,7 @@ function spawGstreamer(port) {
         '!', 'queue',
         '!', 'oggmux', 'name=m',
         '!', 'queue',
-        '!', 'tcpserversink', 'buffers-max=500', 'buffers-soft-max=450', 'recover-policy=1', 'protocol=none', 'blocksize='+(4096 * 5), 'sync=false', 'sync-method=1', 'port='+port];
+        '!', 'tcpserversink', 'buffers-max=500', 'buffers-soft-max=450', 'recover-policy=1', 'protocol=none', 'blocksize='+(4096 * 2), 'sync=false', 'sync-method=1', 'port='+port];
       
         gstMuxer = child.spawn(cmd, args, options);    
         gstMuxer.stderr.on('data', onSpawnError);
