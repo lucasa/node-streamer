@@ -22,7 +22,7 @@ var cmd = '/usr/bin/gst-launch-0.10';
 var options = null;
 var gstMuxer = null;
 
-var GSTREAMER_PORT = 12345;
+var GSTREAMER_PORT = new Number(1000+Math.random() * 9000).toFixed(0); //random port
 
 var DO_BURST_CONNECTION = false;
 
@@ -36,10 +36,18 @@ http.ServerResponse.prototype.getHashCode = (function() {
     }
 })();
 
-var URL = "http://radiolivre.org:8000/muda.ogg";
+if(process.argv.length < 5) {
+    console.log("Please inform all the 3 parameters: URL STREAM_FILE_OUT[.mp3 or .ogg] PORT");
+    return;
+}
+//var URL = "http://radiolivre.org:8000/muda.ogg";
+var URL = process.argv[2];
+var STREAM_OUT = process.argv[3];
+var SERVER_PORT = new Number(process.argv[4]);
+
 try {
     console.log("Starting the gstreamer pipeline...");
-    spawGstreamer(GSTREAMER_PORT, URL);// "http://gonod.softwarelivre.org:8000/radiosl.ogg");
+    spawGstreamer(GSTREAMER_PORT, URL, STREAM_OUT.indexOf(".mp3") != -1);
     console.log("Gstreamer pipeline started.");
 } catch(err) {
     console.log("Error starting the gstreamer pipeline.");
@@ -80,14 +88,14 @@ var total_data = 0;
 var clients = 0;
 var app = express.createServer();
 var io = require('socket.io').listen(app);
-app.get('/radiosl.mp3', function(req, res) {
+app.get('/'+STREAM_OUT, function(req, res) {
     req.shouldKeepAlive = false;
     var date = new Date();
     res.writeHead(200, {
         'Date':date.toUTCString(),
         'Connection':'close',
         'Cache-Control':'no-cache',
-        'Content-Type':'application/mpeg',
+        'Content-Type':'application/ogg',
         'Server':'NodeTranscoder/0.0.1',
     });
     console.log("new http client");
@@ -112,7 +120,7 @@ app.get('/radiosl.mp3', function(req, res) {
     for (var i=0, l=buffer.length; i<l; i++) {
         if(res.writable) {
               //res.write(buffer[i]);
-              t += buffer[i].length;
+              t += buffer[i].length;node-augmented-reality-streamer.js
         }
     }
     console.log("Sent " + t + " bytes from burst-connection buffers.");
@@ -153,29 +161,46 @@ app.configure(function () {
     }));
     app.use(express.static(__dirname+'/static'));
 });
-app.listen(9001);
+
+app.listen(SERVER_PORT, function(){
+    console.log("Server listening "+SERVER_PORT);
+});
 
 console.log("HTTP server running");
 
-function spawGstreamer(port, url) {
-        args =
-        ['--gst-debug-level=1',
-        'uridecodebin', 'use-buffering=true', "uri="+url,
-    	  '!', 'audiorate',
+function spawGstreamer(port, url, mp3) {
+        args = ["--gst-debug-level=3"];
+        
+//        if(url.indexOf("mms:") != -1)
+//             args = args.concat(['mmssrc', 'do-timestamp=true', "location="+url, "!", "queue", "!", "decodebin2"]);
+//        else
+        args = args.concat(['uridecodebin', 'use-buffering=true', "uri="+url, "!", "queue"]);
+            
+    	args = args.concat([
+//        '!', 'audio/x-raw-float,rate=44100,channels=2',
+    	'!', 'audiorate',
         '!', 'audioconvert',
         '!', 'audioresample',
-        '!', 'queue',
-        '!', 'lame','bitrate=64',
-//        '!', 'queue',
-//        '!', 'oggmux', 'name=m',
-        '!', 'queue',
-//        '!', 'progressreport',
-        '!', 'tcpserversink', 'buffers-max=500', 'buffers-soft-max=450', /*'burst-unit=3',*/ 'recover-policy=1', 'protocol=none', 'blocksize='+(4096 * 1), 'sync=false', 'sync-method=2', 'port='+port];
+        '!', 'queue']);
+        
+        if(mp3 == true)
+             args = args.concat(['!', 'lame','bitrate=96', 'vbr=4']);
+        else {
+             args = args.concat(['!', 'vorbisenc','bitrate=96000', 'max-bitrate=96000', 'managed=true']);
+             args = args.concat(['!', 'queue']);
+             args = args.concat(['!', 'oggmux']);
+        }
+        
+         args = args.concat([
+        '!', 'queue','!','progressreport',
+        '!', 'tcpserversink', 'buffers-max=500', 'buffers-soft-max=450', /*'burst-unit=3',*/ 'recover-policy=1', 'protocol=none', 'blocksize='+(4096 * 1), 'sync=false', 'sync-method=2', 'port='+port]);
+        
+        console.log(args.toString());
+        
         //http://www.flumotion.net/doc/flumotion/reference/trunk/flumotion.component.consumers.httpstreamer.httpstreamer-pysrc.html
         gstMuxer = child.spawn(cmd, args, options);    
         gstMuxer.stderr.on('data', onSpawnError);
         gstMuxer.on('exit', onSpawnExit);
-        console.log(args.toString());
         return gstMuxer;
 }
 
@@ -192,10 +217,11 @@ function onSpawnError(data) {
 }
 function onSpawnExit(code) {
     console.error('GStreamer error, exit code ' + code);
+    gstMuxer.stdin.end();
     console.log("Waiting "+(DELAY/1000)+" seconds before run againg.");
     setTimeout(function() {
     		console.log("Try up gstreamer after "+(DELAY/1000)+" seconds.");
-      	    spawGstreamer(GSTREAMER_PORT, URL);
+      	    spawGstreamer(GSTREAMER_PORT, URL, STREAM_OUT.indexOf(".mp3") != -1);
     }, DELAY*=2);
 }
 
