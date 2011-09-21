@@ -1,13 +1,20 @@
 Node-streamer is a experiment with live video streaming using gstreamer command line pipelines.
 
-node node-streamer.js
 
+VIDEO SERVER
+
+"node node-streamer.js"
 Open http://localhost:9001/
 The video url is: http://localhost:9001/stream
 
+AUDIO TRANSCODING SERVER
+...
+
+
 TODO
 
-Implement parameter configuration through html forms.
-Implement live transcoding from mp3 to ogg and vice versa.
+Implement parameter configuration through config file.
+DONE: Implement live transcoding from mp3 to ogg and vice versa.
+Support RTMP streaming.
 When avaiable, use a javascript native gstreamer binding.
 
