@@ -8,26 +8,22 @@ Nodestreamer is a set of experiments with multimedia live streaming using nodejs
 VIDEO STREAMING
 ---------------
 
-- Simple experiment with ogg theora streaming.
+Simple experiment with ogg theora streaming.
 
-Command line: "node node-streamer.js"
-
-Live video url: http://localhost:8003/stream
-
-Monitoring webpage (need a borwser that supports websockets): http://localhost:8003/
+    Command line: "node node-streamer.js"
+    Live video url: http://localhost:8003/stream
+    Monitoring webpage (need a borwser that supports websockets): http://localhost:8003/
 
 
 
 AUDIO STREAMING
 ---------------
 
-- Live transcoding of audio streams from RTMP, OGG, MP3, WMV to Ogg or MP3.
+Live transcoding of audio streams from RTMP, OGG, MP3, WMV to Ogg or MP3.
 
-Command line: "node node-transcoder-ogg-mp3.js URL STREAM_FILE_OUT[.mp3 or .ogg] PORT"
-
-Example: "node node-transcoder-ogg-mp3.js mms://karazhan.senado.gov.br/wmtencoder/radio.wmv senado.ogg 9100"
-
-The output url is: http://localhost:9100/senado.ogg
+    Command line: "node node-transcoder-ogg-mp3.js URL STREAM_FILE_OUT[.mp3 or .ogg] PORT"
+    Example: "node node-transcoder-ogg-mp3.js mms://karazhan.senado.gov.br/wmtencoder/radio.wmv senado.ogg 9100"
+    The output url is: http://localhost:9100/senado.ogg
 
 
 TODO
