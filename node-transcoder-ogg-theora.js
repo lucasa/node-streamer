@@ -170,40 +170,24 @@ console.log("HTTP server running");
 
 function spawGstreamer(port, url) {
         args = ["--gst-debug-level=1"];
-        
-//        if(url.indexOf("mms:") != -1)
-//             args = args.concat(['mmssrc', 'do-timestamp=true', "location="+url, "!", "queue", "!", "decodebin2"]);
-//        else
-        args = args.concat(['uridecodebin', 'name=dec', 'download=true', 'use-buffering=true', "uri=\""+url+"\""]);
-            
-        args = args.concat([
-//        '!', 'audio/x-raw-float,rate=44100,channels=2',
+        args = args.concat(['uridecodebin', 'name=dec', 'download=true', 'use-buffering=true', "uri=\""+url+"\"",
         '!', 'queue',
     	'!', 'audiorate',
-        '!', 'audioconvert'
-//        '!', 'queue'
-        ]);
-        
-        args = args.concat(['!', 'vorbisenc','bitrate=56000']);
-        args = args.concat(['!', 'queue']);
-        args = args.concat(['!', 'mux.']);
-         
-     	args = args.concat(['dec.',
+        '!', 'audioconvert',
+        '!', 'vorbisenc','bitrate=56000',
+        '!', 'queue',
+        '!', 'mux.',
+             'dec.',
         '!', 'queue',
     	'!', 'ffmpegcolorspace',
         '!', 'theoraenc', 'bitrate=196',
-        '!', 'queue']);
-        args = args.concat(['!', 'oggmux', 'name=mux']);            
-         
-         args = args.concat([
         '!', 'queue',
-//        '!', 'shout2send', 'ip=localhost', 'mount=aovivo.ogg', 'password=estudio']);
+        '!', 'oggmux', 'name=mux',
+        '!', 'queue',
+//        '!', 'shout2send', 'ip=localhost', 'mount=live.ogg', 'password=*******']);
         '!', 'tcpserversink', 'buffers-max=500', 'buffers-soft-max=450', /*'burst-unit=3',*/ 'recover-policy=1', 'protocol=none', 'blocksize='+(4096 * 1), 'sync=false', 'sync-method=2', 'port='+port]);
         
-    	
-        
-        
-        console.log(args.toString().replace(',',' '));
+        console.log(args.toString());
         
         //http://www.flumotion.net/doc/flumotion/reference/trunk/flumotion.component.consumers.httpstreamer.httpstreamer-pysrc.html
         gstMuxer = child.spawn(cmd, args, options);    
