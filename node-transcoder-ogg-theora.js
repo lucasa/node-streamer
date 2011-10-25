@@ -17,6 +17,8 @@ var net = require("net");
 var express = require("express");
 var http = require("http");
 var child = require('child_process');
+var jade = require('jade')
+var fs = require('fs');
 
 var cmd = '/usr/bin/gst-launch-0.10';
 var options = null;
@@ -153,12 +155,24 @@ app.get('/'+STREAM_OUT, function(req, res) {
     });    
     
 });
+
+app.get('/',function(req,res) {
+	res.render('index_video.jade', {
+			LINK:"http://gonod.softwarelivre.org:"+SERVER_PORT+"/"+STREAM_OUT
+	});
+});
+
 app.configure(function () {
     app.use(express.logger());
     app.use(express.errorHandler({
         dumpExceptions: true,
         showStack: true
     }));
+//    app.use(express.methodOverride());
+//    app.use(app.router);
+    app.set('view engine', 'jade');
+    app.set('views', __dirname + '/static');
+//    app.use(express.compiler({ src: __dirname + '/static', enable: []}));
     app.use(express.static(__dirname+'/static'));
 });
 
@@ -185,7 +199,7 @@ function spawGstreamer(port, url) {
         '!', 'oggmux', 'name=mux',
         '!', 'queue',
 //        '!', 'shout2send', 'ip=localhost', 'mount=live.ogg', 'password=*******']);
-        '!', 'tcpserversink', 'buffers-max=500', 'buffers-soft-max=450', /*'burst-unit=3',*/ 'recover-policy=1', 'protocol=none', 'blocksize='+(4096 * 1), 'sync=false', 'sync-method=2', 'port='+port]);
+        '!', 'tcpserversink', 'buffers-max=500', 'buffers-soft-max=450', /*'burst-unit=3',*/ 'recover-policy=1', 'protocol=none', 'blocksize='+(4096 * 1), 'sync=true', 'sync-method=2', 'port='+port]);
         
         console.log(args.toString());
         
